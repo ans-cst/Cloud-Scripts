@@ -1,0 +1,1 @@
+foreach ($vm in Get-AzureRmVM) { if($vm.LicenseType -ne 'Windows_Server' -and $vm.StorageProfile.OsDisk.OsType -eq 'Windows') {Write-Output ($vm.Name+"|"+$vm.ResourceGroupName+"|"+$vm.StorageProfile.OsDisk.OsType+"|"+$vm.LicenseType); $vm.LicenseType='Windows_Server'; Update-AzureRmVM -ResourceGroupName $vm.ResourceGroupName -WhatIf -VM $vm}};
