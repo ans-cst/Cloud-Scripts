@@ -7,7 +7,7 @@ $subscriptionId = ""
 Login-AzureRmAccount
 
 #Set Subscription Id
-Select-AzureRmSubsciptionId -SubscriptionId 
+Select-AzureRmSubscription -SubscriptionId 
 
 #Convert Availability set to Managed
 $avSet = Get-AzureRmAvailabilitySet -ResourceGroupName $rgName -Name $avSetName

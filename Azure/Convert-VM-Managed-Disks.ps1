@@ -1,12 +1,13 @@
 #Set Environment Variables
-$rgName = "Test"
-$vmName = "Windows-Test"
+$rgName = "POC"
+$vmName = "Test-Linux"
+$SubscriptionId = ""
 
 #Login to Azure Environment
 Login-AzureRmAccount
 
 #Set Subscription Id
-Select-AzureRmSubsciptionId -SubscriptionId 
+Select-AzureRmSubscription -SubscriptionId $SubscriptionId
 
 #Convert VM to Managed Disks
 Stop-AzureRmVM -ResourceGroupName $rgName -Name $vmName -Force

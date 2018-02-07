@@ -1,0 +1,270 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+
+	
+	"Description": "Bastion Host Deployment",
+
+	
+	"Parameters": {
+        "VPC": {
+			"Description": "VPC to Deploy Bastion Host",
+			"Type" : "AWS::EC2::VPC::Id"
+        },
+		"SubnetA": {
+			"Description": "Subnet to Deploy Bastion Host",
+			"Type" : "AWS::EC2::Subnet::Id"
+        },
+        "DestinationSecurityGroup": {
+			"Description": "Security Group you require to connect to",
+            "Type" : "AWS::EC2::SecurityGroup::Id"
+        },
+        "InstanceKey": {
+			"Description": "EC2 Instance Key Pair for Bastion Host",
+            "Type" : "AWS::EC2::KeyPair::KeyName"
+        },
+        "InstanceType": {
+			"Description": "Instance Type for Bastion Host",
+            "Type" : "String",
+            "Default" : "t2.small",
+            "AllowedValues" : ["t2.small", "t2.medium", "t2.xlarge"]
+        },
+        "InstanceOS": {
+			"Description": "Instance Operating System for Bastion Host",
+            "Type" : "String",
+            "AllowedValues" : ["Windows", "Linux"]
+        }
+	},
+
+    "Mappings" : {
+        "RegionAMI" : {
+            "us-east-1" : { "Windows" : "ami-603b1c1a", "Linux" : "ami-97785bed" },
+            "us-east-2" : { "Windows" : "ami-05446e60", "Linux" : "ami-f63b1193" },
+            "us-west-1" : { "Windows" : "ami-33fefd53", "Linux" : "ami-824c4ee2" },
+            "us-west-2" : { "Windows" : "ami-b2e756ca", "Linux" : "ami-f2d3638a" },
+            "ap-south-1" : { "Windows" : "ami-ad8addc2", "Linux" : "ami-531a4c3c" },
+            "ap-northeast-1" : { "Windows" : "ami-157fe573", "Linux" : "ami-ceafcba8" },
+            "ap-northeast-2" : { "Windows" : "ami-054eee6b", "Linux" : "ami-863090e8" },
+            "ap-southeast-1" : { "Windows" : "ami-c23548be", "Linux" : "ami-68097514" },
+            "ap-southeast-2" : { "Windows" : "ami-82a458e0", "Linux" : "ami-942dd1f6" },
+            "ca-central-1" : { "Windows" : "ami-44b73220", "Linux" : "ami-a954d1cd" },
+            "eu-central-1" : { "Windows" : "ami-d90499b6", "Linux" : "ami-5652ce39" },
+            "eu-west-1" : { "Windows" : "ami-96b824ef", "Linux" : "ami-d834aba1" },
+            "eu-west-2" : { "Windows" : "ami-79607b1d", "Linux" : "ami-403e2524" },
+            "eu-west-3" : { "Windows" : "ami-5bfc4a26", "Linux" : "ami-8ee056f3" }, 
+            "sa-east-1" : { "Windows" : "ami-1cc68470", "Linux" : "ami-84175ae8" }
+        }
+    },
+
+    "Conditions" : {
+        "CreateWindowsHost" : {"Fn::Equals" : [{"Ref" : "InstanceOS"}, "Windows"]},
+        "CreateLinuxHost" : {"Fn::Equals" : [{"Ref" : "InstanceOS"}, "Linux"]}
+    },
+
+	"Resources": {
+		"ProdWindowsBastionSG": {
+			"Type": "AWS::EC2::SecurityGroup",
+            "Condition" : "CreateWindowsHost",
+			"Properties": {
+                "SecurityGroupIngress" : [{
+				    "IpProtocol": "tcp",
+				    "FromPort": "3389",
+				    "ToPort": "3389",
+				    "CidrIp": "185.12.194.1/32"
+                }],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "Prod_WindowsBastion_SG"
+					}
+				],
+				"GroupDescription": "Windows Bastion Host Security Group",
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+
+        "WindowsBastionHost" : {
+            "Type" : "AWS::EC2::Instance",
+            "Condition" : "CreateWindowsHost",
+            "Properties" : { 
+               "ImageId" : { "Fn::FindInMap" : [ "RegionAMI", { "Ref" : "AWS::Region" }, "Windows"]},
+               "InstanceInitiatedShutdownBehavior" : "stop",
+               "InstanceType" : { "Ref" : "InstanceType" },
+               "KeyName" : { "Ref" : "InstanceKey" },
+               "Monitoring" : "false",
+               "NetworkInterfaces" : [{
+                    "AssociatePublicIpAddress" : "True",
+                    "DeleteOnTermination" : "True",
+                    "SubnetId" : { "Ref" : "SubnetA" },
+                    "GroupSet": [{"Fn::GetAtt" : ["ProdWindowsBastionSG", "GroupId"]}],
+                    "DeviceIndex" : "0"
+                }],
+               "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "ANS-Windows-Bastion"
+                },
+                {
+                    "Key": "Application Name",
+                    "Value": "Bastion"
+                },
+                {
+                    "Key" : "Criticality",
+                    "Value" : "Tier 3"
+                },
+                {
+                    "Key" : "Environment",
+                    "Value" : "Prod"
+                },
+                {
+                    "Key" : "Owner",
+                    "Value" : "ANS"
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<powershell>\n",
+                                    "#Create Temp Directory \n",
+                                    "New-Item -ItemType directory -Path C:\\Temp \n",
+                                    "#Install Google Chrome \n",
+                                    "invoke-webrequest -Uri http://dl.google.com/chrome/install/375.126/chrome_installer.exe -OutFile C:\\Temp\\Chrome.Installer.x64.exe \n",
+                                    "C:\\Temp\\Chrome.Installer.x64.exe /silent /install \n",
+                                    "SLEEP 30 \n",
+                                    "#Install Notepad++ \n",                          
+                                    "invoke-webrequest -Uri https://notepad-plus-plus.org/repository/7.x/7.2/npp.7.2.Installer.x64.exe -OutFile 'C:\\Temp\\Notepad++.exe' \n",
+                                    "start C:\\Temp\\Notepad++.exe /S \n",
+                                    "SLEEP 30 \n",
+                                    "#Download Putty\n",   
+                                    "invoke-webrequest -Uri https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe -OutFile 'C:\\Temp\\Putty.Installer.x64.exe' \n",
+                                    "#Create Putty Desktop Shortcut \n",
+                                    "$TargetFile = 'C:\\Temp\\Putty.Installer.x64.exe' \n",
+                                    "$ShortcutFile = 'C:\\Users\\Public\\Desktop\\Putty.lnk' \n",
+                                    "$WScriptShell = New-Object -ComObject WScript.Shell \n",
+                                    "$Shortcut = $WScriptShell.CreateShortcut($ShortcutFile) \n",
+                                    "$Shortcut.TargetPath = $TargetFile \n",
+                                    "$Shortcut.Save() \n",
+                                    "</powershell>"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "WindowsSecurityGroupRule" : {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Condition" : "CreateWindowsHost",
+			"DependsOn": "ProdWindowsBastionSG",
+			"Properties": {
+				"GroupId": { "Ref" : "DestinationSecurityGroup" },
+				"IpProtocol": "tcp",
+				"FromPort": "3389",
+				"ToPort": "3389",
+				"SourceSecurityGroupId": { "Ref" : "ProdWindowsBastionSG" }
+			}
+		},
+
+
+		"ProdLinuxBastionSG": {
+			"Type": "AWS::EC2::SecurityGroup",
+            "Condition" : "CreateLinuxHost",
+			"Properties": {
+                "SecurityGroupIngress" : [{
+				    "IpProtocol": "tcp",
+				    "FromPort": "22",
+				    "ToPort": "22",
+				    "CidrIp": "185.12.194.1/32"
+                }],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "Prod_LinuxBastion_SG"
+					}
+				],
+				"GroupDescription": "Linux Bastion Host Security Group",
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+
+        "LinuxBastionHost" : {
+            "Type" : "AWS::EC2::Instance",
+            "Condition" : "CreateLinuxHost",
+            "Properties" : { 
+               "ImageId" : { "Fn::FindInMap" : [ "RegionAMI", { "Ref" : "AWS::Region" }, "Linux"]},
+               "InstanceInitiatedShutdownBehavior" : "stop",
+               "InstanceType" : { "Ref" : "InstanceType" },
+               "KeyName" : { "Ref" : "InstanceKey" },
+               "Monitoring" : "false",
+               "NetworkInterfaces" : [{
+                    "AssociatePublicIpAddress" : "True",
+                    "DeleteOnTermination" : "True",
+                    "SubnetId" : { "Ref" : "SubnetA" },
+                    "GroupSet": [{"Fn::GetAtt" : ["ProdLinuxBastionSG", "GroupId"]}],
+                    "DeviceIndex" : "0"
+                }],
+               "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "ANS-Linux-Bastion"
+                },
+                {
+                    "Key": "Application Name",
+                    "Value": "Bastion"
+                },
+                {
+                    "Key" : "Criticality",
+                    "Value" : "Tier 3"
+                },
+                {
+                    "Key" : "Environment",
+                    "Value" : "Prod"
+                },
+                {
+                    "Key" : "Owner",
+                    "Value" : "ANS"
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "", [
+                                "#!/bin/bash \n",
+                                "yum update -y"
+                            ]
+                        ]
+                    }
+                }    
+            }
+        },
+
+        "LinuxSecurityGroupRule" : {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Condition" : "CreateLinuxHost",
+			"DependsOn": "ProdLinuxBastionSG",
+			"Properties": {
+				"GroupId": { "Ref" : "DestinationSecurityGroup" },
+				"IpProtocol": "tcp",
+				"FromPort": "22",
+				"ToPort": "22",
+				"SourceSecurityGroupId": { "Ref" : "ProdLinuxBastionSG" }
+			}
+		}
+    },
+
+
+
+    "Outputs" : {
+        "WindowsPublicIP": {
+            "Description": "Web Security Group ID",
+            "Condition" : "CreateWindowsHost",
+            "Value": {"Fn::GetAtt": ["WindowsBastionHost","PublicIp"]}
+        },
+            
+        "LinuxPublicIP": {
+            "Description": "Web Security Group ID",
+            "Condition" : "CreateLinuxHost",
+			"Value": {"Fn::GetAtt": ["LinuxBastionHost","PublicIp"]}
+		}
+    }
+}
