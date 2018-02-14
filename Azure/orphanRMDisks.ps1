@@ -36,6 +36,7 @@ $Uri = foreach ($VHD in $AllVHDs) {
         StorageTier = $StorageAccount.Sku.Tier;
         StorageAccountName = $StorageAccountName;
         StorageAccountResourceGroup = $StorageAccount.ResourceGroupName
+		SizeGB = $VHD.Length / 1024 / 1024 / 1024
 
     }
 
