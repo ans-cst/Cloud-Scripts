@@ -1,20 +1,26 @@
-Write-Host ""
+﻿Write-Host ""
 Write-Host "ANS Azure Zombie VHDs"
 Write-Host "Version 2.0.0"
 Write-Host ""
 Write-Host ""
-Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
 
 #Install/Import AzureAD Module
-$Module = Get-Module -Name AzureRM
-if ($Module -eq $null) {
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing modules..."
+Import-Module -Name AzureRM -ErrorVariable ModuleError -ErrorAction SilentlyContinue
+If ($ModuleError) {
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Installing module AzureRM..."
     Install-Module -Name AzureRM
     Import-Module -Name AzureRM
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Installed AzureRM module..."
 }
-else {
-    Import-Module -Name AzureRM
+Import-Module -Name Azure.Storage -ErrorVariable ModuleError -ErrorAction SilentlyContinue
+If ($ModuleError) {
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Installing module AzureStorage..."
+    Install-Module -Name Azure.Storage
+    Import-Module -Name Azure.Storage
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Installed AzureStorage module..."
 }
-Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported Module"
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported Modules"
 Write-Host ""
 
 

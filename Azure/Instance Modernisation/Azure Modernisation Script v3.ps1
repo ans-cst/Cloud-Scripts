@@ -7,15 +7,15 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
 
 
 #Install and Import AzureAD Module
-$Module = Get-Module -Name AzureRM
-if ($Module -eq $null) {
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
+Import-Module -Name AzureRM -ErrorVariable ModuleError -ErrorAction SilentlyContinue
+If ($ModuleError) {
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Installing module..."
     Install-Module -Name AzureRM
     Import-Module -Name AzureRM
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Installed module..."
 }
-else {
-    Import-Module -Name AzureRM
-}
-Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully imported module"
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported module"
 Write-Host ""
 
 #Create Log Output File

@@ -6,18 +6,17 @@ Write-Host ""
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
 
 
-#Install and Import AzureAD Module
-$Module = Get-Module -Name AWSPowerShell
-if ($Module -eq $null) {
+#Install and Import AWS PowerShell Module
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
+Import-Module -Name AWSPowerShell -ErrorVariable ModuleError -ErrorAction SilentlyContinue
+If ($ModuleError) {
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Installing module..."
     Install-Module -Name AWSPowerShell
     Import-Module -Name AWSPowerShell
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Installed module..."
 }
-else {
-    Import-Module -Name AWSPowerShell
-}
-Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully imported module"
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported module"
 Write-Host ""
-
 
 #Set CSV Path and Import CSV
 $CSVPath = Read-Host "Please input the directory path to the CSV location"
