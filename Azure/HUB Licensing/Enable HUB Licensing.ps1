@@ -1,6 +1,6 @@
 Write-Host ""
 Write-Host "ANS - Enable Azure HUB Licensing"
-Write-Host "Version 1.0.0"
+Write-Host "Version 1.0.1"
 Write-Host ""
 Write-Host ""
 
@@ -40,10 +40,11 @@ Write-Host ""
 #Enable HUB Licensing
 foreach ($VirtualMachine in $CSV) { 
     if($VirtualMachine."HUB Enabled" -ne 'True' -and $VirtualMachine.OSType -eq 'Windows') {
-    Write-Output "Enabling HUB Licensing on" $VirtualMachine.VMName
+    Write-Host "Enabling HUB Licensing on -" $VirtualMachine.VMName
+
     $VM = Get-AzureRMVm -ResourceGroupName $VirtualMachine.ResourceGroup -Name $VirtualMachine.VMName;
     $VM.LicenseType='Windows_Server'; 
     Update-AzureRmVM -ResourceGroupName $VM.ResourceGroupName -VM $VM
-    Write-Output "HUB Licensing Enabled on" $VirtualMachine.VMName
+    Write-Host "HUB Licensing Enabled on -" $VirtualMachine.VMName
     }
 }
