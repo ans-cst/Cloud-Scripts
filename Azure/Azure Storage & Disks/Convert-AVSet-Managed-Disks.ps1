@@ -1,6 +1,6 @@
 Write-Host ""
 Write-Host "ANS Convert Azure Availabiltiy Set to Managed Disks"
-Write-Host "Version 1.0.0"
+Write-Host "Version 1.1.0"
 Write-Host ""
 Write-Host ""
 
@@ -17,7 +17,7 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported modu
 Write-Host ""
 
 #Set Environment Variables
-$vmName = Read-Host "Please input the Virtual Machines Name"
+$avSetName = Read-Host "Please input the Availability Set Name"
 $rgName = Read-Host "Please input the Virtual Machines Resource Group Name"
 [uint16]$Time = Read-Host "Please input the amount of time to wait between converting each VM in seconds"
 
@@ -43,19 +43,28 @@ $avSet = Get-AzureRmAvailabilitySet -ResourceGroupName $rgName -Name $avSetName
 Update-AzureRmAvailabilitySet -AvailabilitySet $avSet -Sku Aligned 
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Availability set updated successfully"
 
-#Convert VM disks to managed
+#Convert each VM disks to managed
 $avSet = Get-AzureRmAvailabilitySet -ResourceGroupName $rgName -Name $avSetName
 foreach($vm in $avSet.VirtualMachinesReferences)
 {
-  $vm = Get-AzureRmVM -ResourceGroupName $rgName | Where-Object {$_.Id -eq $vmInfo.id}
+  #Get VM Object  
+  $vm = Get-AzureRmResource -ResourceId $vm.id
 
+  #Stop VM
+  Write-Host ""
   Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Stopping Virtual Machine -" $vm.Name
-
   Stop-AzureRmVM -ResourceGroupName $rgName -Name $vm.Name -Force
-  ConvertTo-AzureRmVMManagedDisk -ResourceGroupName $rgName -VMName $vm.Name
-  Start-AzureRmVM -ResourceGroupName $rgName -Name $vm.Name
 
+  #Convert VM to Managed Disks
+  Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Converting" $vm.Name "to Managed Disks"
+  ConvertTo-AzureRmVMManagedDisk -ResourceGroupName $rgName -VMName $vm.Name
+  Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Converted" $vm.Name "to Managed Disks successfully"
+
+  #Start VM
+  Start-AzureRmVM -ResourceGroupName $rgName -Name $vm.Name
   Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Virtual Machine" $vm.Name "started successfully"
-  Write-Host "Waiting for previous VM to boot and start application services - waiting for" $Time "seconds"
+
+  #Wait for specified time period before proceeding
+  Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Waiting for previous VM to boot and start application services - waiting for" $Time "seconds"
   SLEEP $TIME
 }

@@ -1,6 +1,6 @@
 Write-Host ""
 Write-Host "ANS Convert Azure VM to Managed Disks"
-Write-Host "Version 1.0.0"
+Write-Host "Version 1.1.0"
 Write-Host ""
 Write-Host ""
 
@@ -38,17 +38,16 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Subscription successfully 
 Write-Host ""
 
 #Stop Virtual Machine
+Write-Host ""
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Stopping Virtual Machine" $vmName
 Stop-AzureRmVM -ResourceGroupName $rgName -Name $vmName -Force
-
-$VMState = Get-AzureRmVm -ResourceGroupName $rgName -Name $vmName -Status
-while ($VMState.Statuses.DisplayStatus[1] -ne "VM deallocated") {
-    Write-Host "Check the status of" $vmName
-    SLEEP 2
-}
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")]" $vmName "has successfully stopped"
 
 #Convert VM to Managed Disks
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Converting Virtual Machine" $vmName "to managed disks"
 ConvertTo-AzureRmVMManagedDisk -ResourceGroupName $rgName -VMName $vmName
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Converted Virtual Machine" $vmName "to managed disks successfully!"
+
+#Start Virtual Machine
+Start-AzureRmVM -ResourceGroupName $rgName -Name $vm.Name
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Virtual Machine" $vm.Name "started successfully"
