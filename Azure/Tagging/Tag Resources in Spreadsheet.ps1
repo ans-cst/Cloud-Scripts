@@ -4,7 +4,7 @@ Write-Host "Version 1.0.0"
 Write-Host ""
 Write-Host ""
 Write-Host "Before Proceeding please ensure the CSV headers are in the below format:"
-Write-Host "Resource Name  |  Resource Id  |  Tag1  |  Tag2  |  Tag3  |  Tag4"
+Write-Host "Resource Name  |  Resource Id  |  <Tag1>  |  <Tag2>  |  <Tag3>  |  <Tag4>"
 Write-Host ""
 
 
@@ -21,8 +21,8 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Successfully Imported modu
 Write-Host ""
 
 #Import CSV
-$CSVPath = Read-Host "Please input the file path to the CSV"
-$CSV = Import-Csv $CSVPath
+$CSV = Read-Host "Please input the file path to the CSV"
+$CSV = Import-Csv $CSV
 
 #Login to Azure
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Logging in to Azure Account..."
@@ -42,12 +42,12 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Subscription successfully 
 Write-Host ""
 
 
-
 foreach ($Item in $CSV) {
     
     #Get Resource and Current Tags
     $Resource = Get-AzureRmResource -ResourceId $Item.'Resource Id'
     $ResourceTags = $Resource.Tags
+    
 
     #Get Tag Keys from CSV
     $Keys = $CSV | Get-Member | where-object {$_.MemberType -eq "NoteProperty" -and $_.Name -ne "Resource Name" -and $_.Name -ne "Resource Id"}
@@ -56,12 +56,26 @@ foreach ($Item in $CSV) {
     Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Gathering tags from spreadsheet for -" $Item."Resource Name"
     foreach ($Key in $Keys) {
         
+        #Set Key Name
         $KeyName = $Key.Name
-        $ResourceTags.$KeyName = $Item.$KeyName
+
+        #If Tag Value in CSV is Present Add Tag
+        if ($Item.$KeyName -ne "") {
+
+            #Tag does not currently exist
+            if ($ResourceTags.$KeyName -eq $null) {
+                $ResourceTags += @{ $KeyName = $Item.$KeyName }
+            }
+
+            #Tag already exists
+            else {
+            $ResourceTags.$KeyName = $Item.$KeyName
+            }
+        }
     }
 
     #Add the new Tags to the resource
-    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Adding tags to resource" +$Item."Resource Name"
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Adding tags to resource" $Item."Resource Name"
     Set-AzureRmResource -Tag $ResourceTags -ResourceId $Item.'Resource Id' -Force
 
 
