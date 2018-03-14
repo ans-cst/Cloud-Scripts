@@ -1,5 +1,7 @@
 # LogicMonitor Collectors (Existing vNet)
 
+Availability Set Collectors
+
 [![Deploy to Azure](/Azure/Images/azure_deploy.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fans-cst%2Fcloud-scripts%2Fmaster%2FAzure%2FLogicMonitor%2FLogicMonitor-Collector-Existing-Network%2FCreateAVSetLMCollector.json)
 [![Deploy to Azure](/Azure/Images/azure_view.png)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fans-cst%2Fcloud-scripts%2Fmaster%2FAzure%2FLogicMonitor%2FLogicMonitor-Collector-Existing-Network%2FCreateAVSetLMCollector.json)
 
@@ -7,6 +9,8 @@ The CreateAVSetLMCollector template creates a failover pair of LogicMonitor coll
 
 ![Diagram](/Azure/LogicMonitor/LogicMonitor-Collector-Existing-Network/CreateLMCollectorAVSet.png)
 
+
+Single Collector
 
 [![Deploy to Azure](/Azure/Images/azure_deploy.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fans-cst%2Fcloud-scripts%2Fmaster%2FAzure%2FLogicMonitor%2FLogicMonitor-Collector-Existing-Network%2FCreateSingleLMCollector.json)
 [![Deploy to Azure](/Azure/Images/azure_view.png)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fans-cst%2Fcloud-scripts%2Fmaster%2FAzure%2FLogicMonitor%2FLogicMonitor-Collector-Existing-Network%2FCreateSingleLMCollector.json)
