@@ -7,7 +7,7 @@ Availability Set Collectors
 
 The CreateAVSetLMCollector template creates a failover pair of LogicMonitor collectors into a new vNet and registers them in the LogicMonitor portal. The template uses the Azure VM CustomScriptExtension to download a PowerShell installation script from GitHub, once executed it registers the collectors in LogicMonitor then downloads the collector installation media, and finally installs the collector software. 
 
-![Diagram](/Azure/LogicMonitor/LogicMonitor-Collector-New-Network/CreateLMCollector.png)
+![Diagram](/Azure/LogicMonitor/LogicMonitor-Collector-New-Network/CreateLMCollectorAVSet.png)
 
 
 Single Collector
