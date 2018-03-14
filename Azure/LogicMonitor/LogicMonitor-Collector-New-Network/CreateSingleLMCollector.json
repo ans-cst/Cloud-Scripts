@@ -1,0 +1,316 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 15,
+        "metadata": {
+          "description": "Display Name for the Virtual Machine"
+        }
+      },
+    "vmSize": {
+        "type": "string",
+        "allowedValues": ["Standard_D1_v2","Standard_D2_v3","Standard_D4_v3"],
+        "metadata": {
+          "description": "VM Size/Type for the Virtual Machine"
+        }
+      },    
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "lmCollectorGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Customers Collector Group Name."
+      }   
+    },
+    "lmAccessKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "LogicMonitor Access Key."
+        }    
+    },
+    "lmSecretKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "LogicMonitor Secret Key."
+        }    
+    },
+    "lmCollectorSize": {
+        "type": "string",
+        "allowedValues": ["small","medium","large"],
+        "defaultValue": "small",
+        "metadata": {
+          "description": "LogicMonitor Collector Size (Small 100 devices, Medium 500 devices, Large 750 devices)."
+        }    
+    },
+    "lmHost": {
+        "defaultValue": "ans",
+        "type": "string",
+        "allowedValues": ["ans","anstest"],
+        "metadata": {
+          "description": "LogicMonitor Environment"
+        }    
+    },
+    "vnetPrefix": {
+      "defaultValue": "10.0.0.0/16",
+      "type": "string",
+      "metadata": {
+        "description": "Enter Virtual Network address prefix"
+      }    
+    },
+    "subnetPrefix": {
+      "defaultValue": "10.0.0.0/24",
+      "type": "string",
+      "metadata": {
+        "description": "Enter Subnet address prefix"
+      }    
+    },
+    "tagBusinessUnit": {
+      "defaultValue": "IT",
+      "type": "string",
+      "metadata": {
+        "description": "Enter business unit tag value"
+      }    
+    },
+    "tagCostCentre": {
+      "defaultValue": "IT",
+      "type": "string",
+      "metadata": {
+        "description": "Enter cost centre tag value"
+      }    
+    },
+    "tagOwner": {
+      "defaultValue": "Firstname Lastname",
+      "type": "string",
+      "metadata": {
+        "description": "Enter owners tag value"
+      }    
+    },
+    "tagEnvironment": {
+      "defaultValue": "Production",
+      "type": "string",
+      "metadata": {
+        "description": "Enter environment tag value"
+      }    
+    },
+    "tagApplicationRoles": {
+      "defaultValue": "Monitoring",
+      "type": "string",
+      "metadata": {
+        "description": "Enter application role tag value"
+      }    
+    }
+  },
+  "variables": {
+    "subnetName": "[concat(parameters('vmName'),'-subnet')]",
+    "virtualNetworkName": "[concat(parameters('vmName'),'-vnet')]",
+    "virtualNetworkId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('virtualNetworkId'),'/subnets/', variables('subnetName'))]",
+    "networkSecurityGroup": "[concat(parameters('vmName'),'-nsg')]",
+    "scriptLocation": "https://raw.githubusercontent.com/ans-cst/azure/master/Azure/LogicMonitor/LogicMonitor-Collector-New-Network/CreateLMCollector.ps1",
+    "script": "CreateLMCollector.ps1",
+    "arguments": "[concat('-accessId ', '\"', parameters('lmAccessKey'), '\"', ' -accessKey ', '\"', parameters('lmSecretKey'), '\"', ' -collectorSize ', parameters('lmCollectorSize'), ' -lmHost ', parameters('lmHost'), ' -customerName ', '\"', parameters('lmCollectorGroup'), '\"')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2017-03-01",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('networkSecurityGroup')]",
+      "tags": {
+        "Business Unit": "[parameters('tagBusinessUnit')]",
+        "Cost Centre": "[parameters('tagCostCentre')]",
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]",
+        "Application Roles": "[parameters('tagApplicationRoles')]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Outbound_Any",
+            "properties": {
+              "description": "Outbound to any",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "apiVersion": "2017-03-01",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Business Unit": "[parameters('tagBusinessUnit')]",
+        "Cost Centre": "[parameters('tagCostCentre')]",
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]",
+        "Application Roles": "[parameters('tagApplicationRoles')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroup'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroup'))]"
+                }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "tags": {
+        "Business Unit": "[parameters('tagBusinessUnit')]",
+        "Cost Centre": "[parameters('tagCostCentre')]",
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]",
+        "Application Roles": "[parameters('tagApplicationRoles')]"
+      },
+      "kind": "Storage",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('vmName'),'-nic')]",
+      "apiVersion": "2017-03-01",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Business Unit": "[parameters('tagBusinessUnit')]",
+        "Cost Centre": "[parameters('tagCostCentre')]",
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]",
+        "Application Roles": "[parameters('tagApplicationRoles')]"
+      },
+      "dependsOn": [
+        "[variables('virtualNetworkName')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "[concat(parameters('vmName'),'-ipconfig')]",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+
+      "name": "[parameters('vmName')]",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Business Unit": "[parameters('tagBusinessUnit')]",
+        "Cost Centre": "[parameters('tagCostCentre')]",
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]",
+        "Application Roles": "[parameters('tagApplicationRoles')]"
+      },
+      "dependsOn": [
+        "[concat(parameters('vmName'),'-nic')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2016-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "diskSizeGB": 5,
+              "lun": 0,
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'-nic'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('vmName'), '/', 'LogicMonitor-Collector')]",
+        "apiVersion": "2017-03-30",
+        "location": "[resourceGroup().location]",
+        "scale": null,
+        "dependsOn": [
+          "[parameters('vmName')]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.7",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                  "[variables('scriptLocation')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat ('powershell -ExecutionPolicy Unrestricted -File ', variables('script'), ' ', variables('arguments'))]"  
+            }
+        }
+    }
+  ]
+}
