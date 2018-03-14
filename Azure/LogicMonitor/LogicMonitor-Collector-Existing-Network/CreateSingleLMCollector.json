@@ -121,7 +121,7 @@
     "virtualNetworkId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVnetName'))]",
     "subnetRef": "[concat(variables('virtualNetworkId'),'/subnets/', parameters('existingSubnetName'))]",
     "networkSecurityGroup": "[concat(parameters('vmName'),'-nsg')]",
-    "scriptLocation": "https://raw.githubusercontent.com/ans-cst/azure/master/Azure/LogicMonitor/LogicMonitor-Collector-Existing-Network/CreateLMCollector.ps1",
+    "scriptLocation": "https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/LogicMonitor/LogicMonitor-Collector-Existing-Network/CreateLMCollector.ps1",
     "script": "CreateLMCollector.ps1",
     "arguments": "[concat('-accessId ', '\"', parameters('lmAccessKey'), '\"', ' -accessKey ', '\"', parameters('lmSecretKey'), '\"', ' -collectorSize ', parameters('lmCollectorSize'), ' -lmHost ', parameters('lmHost'), ' -customerName ', '\"', parameters('lmCollectorGroup'), '\"')]"
     
