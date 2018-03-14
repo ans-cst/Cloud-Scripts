@@ -1,6 +1,6 @@
 Write-Host ""
 Write-Host "ANS Convert Azure Availabiltiy Set to Managed Disks"
-Write-Host "Version 1.1.0"
+Write-Host "Version 1.2.0"
 Write-Host ""
 Write-Host ""
 
@@ -39,8 +39,18 @@ Write-Host ""
 
 #Convert Availability set to Managed
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Changing Availability set SKU to aligned"
+
+#Try with current number of fault domains
 $avSet = Get-AzureRmAvailabilitySet -ResourceGroupName $rgName -Name $avSetName
-Update-AzureRmAvailabilitySet -AvailabilitySet $avSet -Sku Aligned 
+Update-AzureRmAvailabilitySet -AvailabilitySet $avSet -Sku Aligned -ErrorAction SilentlyContinue
+
+#If Error Try with 2 Fault Domains
+if ($error.Count -gt 0) {
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Changing Availability set Fault Domains to 2 as current number is not supported"
+$avSet.PlatformFaultDomainCount = 2
+Update-AzureRmAvailabilitySet -AvailabilitySet $avSet -Sku Aligned  
+}
+
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Availability set updated successfully"
 
 #Convert each VM disks to managed
