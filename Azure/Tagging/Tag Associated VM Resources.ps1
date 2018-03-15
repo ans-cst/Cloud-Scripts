@@ -118,4 +118,6 @@ foreach ($VM in Get-AzureRmVM | Where-Object {$_.Tags -ne $null}) {
     Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Public IPs Tagged Successfully"
     Write-Host ""
     }
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")]" $VM.Name "Tagged Successfully!"
 }
+Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Tagging Completed Successfully for all Virtual Machines"
