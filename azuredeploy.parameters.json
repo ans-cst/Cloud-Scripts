@@ -1,0 +1,27 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmName": {
+          "value": "ans-vm1"
+      },
+      "adminUsername": {
+        "value": "ansuser"
+      },
+      "keyVaultName": {
+        "value": "ANS-KeyVault"
+      },
+      "secretName": {
+        "value": "adminPassword"
+      },
+      "virtualNetworkName": {
+          "value": "ans-vNet"
+      },
+      "subnetName": {
+          "value": "ans-Subnet"
+      },
+      "dnsLabelPrefix": {
+        "value": "ans-vm1"
+      }
+    }
+  }

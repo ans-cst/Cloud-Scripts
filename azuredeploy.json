@@ -1,0 +1,142 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+          "type": "string",
+          "metadata": {
+            "description": "User name for the Virtual Machine."
+          }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+              "description": "Name for the Azure Key Vault."
+            }
+          },
+        "secretName": {
+            "type": "string",
+            "metadata": {
+              "description": "Name for the Secret on the Azure Key Vault."
+            }
+          },
+        "vmName": {
+           "type": "string",
+           "metadata": {
+                "description": "Name for the virtual machine"
+            },
+            "minLength": 1,
+            "maxLength": 64
+        },
+        "dnsLabelPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+          }
+        },
+        "ubuntuOSVersion": {
+          "type": "string",
+          "defaultValue": "16.04-LTS",
+          "allowedValues": [
+            "14.04-LTS",
+            "16.04-LTS",
+            "17.04",
+            "17.10"
+          ],
+          "metadata": {
+            "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version."
+          }
+        },
+        "numberOfDataDisks": {
+           "type": "int",
+           "defaultValue": 1,
+           "metadata": {
+                "description": "Number of data disks (managed) to attach to the virtual machine."
+            }
+        },
+        "virtualNetworkName": {
+           "type": "string",
+           "metadata": {
+                "description": "Name for the virtual network"
+            }
+        },
+        "virtualNetworkPrefix": {
+           "type": "string",
+           "defaultValue": "10.0.0.0/16",
+           "metadata": {
+                "description": "CIDR address space for the virtual network"
+            }
+        },
+        "subnetName": {
+           "type": "string",
+           "defaultValue": "Subnet",
+           "metadata": {
+                "description": "Name for the subnet - defaults to Subnet"
+            }
+        },
+        "subnetPrefix": {
+           "type": "string",
+           "defaultValue": "10.0.0.0/24",
+           "metadata": {
+                "description": "CIDR address space for the subnet"
+            }
+        }
+      },
+    "variables": {
+        "vmUri": "[uri(deployment().properties.templateLink.uri, 'vm.json')]"
+    },
+    "resources": [
+        {
+            "name": "vmTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "lab7",
+            "properties": {
+              "mode": "Incremental",
+              "parameters": {
+                "adminUsername": {
+                    "value": "[parameters('adminUsername')]"
+                },
+                "adminPassword": {
+                    "reference": {
+                        "keyVault": {
+                            "id": "[concat('/resourceGroups/KeyVault/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+                        },
+                        "secretName": "[parameters('secretName')]"
+                    }
+                },
+                "vmName": {
+                    "value": "[parameters('vmName')]"
+                },
+                "dnsLabelPrefix": {
+                    "value": "[parameters('dnsLabelPrefix')]"
+                },
+                "ubuntuOSVersion": {
+                    "value": "[parameters('ubuntuOSVersion')]"
+                },
+                "numberOfDataDisks": {
+                    "value": "[parameters('numberOfDataDisks')]"
+                },
+                "virtualNetworkName": {
+                    "value": "[parameters('virtualNetworkName')]"
+                },
+                "virtualNetworkPrefix": {
+                    "value": "[parameters('virtualNetworkPrefix')]"
+                },
+                "subnetName": {
+                    "value": "[parameters('subnetName')]"
+                },
+                "subnetPrefix": {
+                    "value": "[parameters('subnetPrefix')]"
+                }
+
+              },
+              "templateLink": {
+                "uri": "[variables('vmUri')]",
+                "contentVersion": "1.0.0.0"
+              }
+            }
+        }
+    ],
+    "outputs": {}
+}
