@@ -84,7 +84,7 @@
       },
     "variables": {
         "vmUri": "[uri(deployment().properties.templateLink.uri, 'vm.json')]",
-        "keyVaultId": "[concat('subscriptions/9c15dde4-f4fa-4de2-8655-8b81421fd628/resourceGroups/KeyVault/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+        "keyVaultId": "[concat('/subscriptions/9c15dde4-f4fa-4de2-8655-8b81421fd628/resourceGroups/KeyVault/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
     },
     "resources": [
         {
