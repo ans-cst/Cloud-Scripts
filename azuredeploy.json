@@ -83,7 +83,8 @@
         }
       },
     "variables": {
-        "vmUri": "[uri(deployment().properties.templateLink.uri, 'vm.json')]"
+        "vmUri": "[uri(deployment().properties.templateLink.uri, 'vm.json')]",
+        "keyVaultId": "[concat('subscriptions/9c15dde4-f4fa-4de2-8655-8b81421fd628/resourceGroups/KeyVault/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
     },
     "resources": [
         {
@@ -100,7 +101,7 @@
                 "adminPassword": {
                     "reference": {
                         "keyVault": {
-                            "id": "[concat('subscriptions/9c15dde4-f4fa-4de2-8655-8b81421fd628/resourceGroups/KeyVault/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+                            "id": "[variables('keyVaultId')]"
                         },
                         "secretName": "[parameters('secretName')]"
                     }
