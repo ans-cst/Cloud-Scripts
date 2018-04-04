@@ -3,10 +3,8 @@ Write-Host "ANS Unmodernised Instances"
 Write-Host "Version 3.0.0"
 Write-Host ""
 Write-Host ""
-Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
 
-
-#Install and Import AzureAD Module
+#Install and Import AzureRM Module
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Importing module..."
 Import-Module -Name AzureRM -ErrorVariable ModuleError -ErrorAction SilentlyContinue
 If ($ModuleError) {

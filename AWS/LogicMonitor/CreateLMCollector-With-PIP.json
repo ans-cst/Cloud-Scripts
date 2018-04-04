@@ -1,0 +1,216 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+
+	
+	"Description": "Linux Based LogicMonitor Collector Deployment",
+
+	
+	"Parameters": {
+        "VPC": {
+			"Description": "VPC to Deploy Collectors",
+			"Type" : "AWS::EC2::VPC::Id"
+        },
+		"SubnetA": {
+			"Description": "Subnet for first Availabilty Zone in Region",
+			"Type" : "AWS::EC2::Subnet::Id"
+        },
+        "SubnetB": {
+			"Description": "Subnet for second Availability Zone in Region",
+			"Type" : "AWS::EC2::Subnet::Id"
+        },
+        "InstanceKey": {
+			"Description": "EC2 Instance Key Pair for Collector Instances",
+            "Type" : "AWS::EC2::KeyPair::KeyName"
+        },
+        "InstanceType": {
+			"Description": "Instance Type for Collector Instances",
+            "Type" : "String",
+            "Default" : "t2.small",
+            "AllowedValues" : ["t2.small", "t2.medium", "t2.xlarge"]
+        },
+        "CustomerName": {
+			"Description": "Customers Sostenuto Id.",
+            "Type" : "String"
+        },
+        "ImageID": {
+			"Description": "Specify Amazon Linux 64 AMI ID",
+            "Type" : "String",
+            "Default" : "ami-403e2524"
+        },
+        "accessId": {
+			"Description": "LogicMonitor Access ID.",
+            "Type" : "String"
+        },        
+        "accessKey": {
+			"Description": "LogicMonitor Secret Key.",
+            "Type" : "String",
+            "NoEcho" : true
+        },
+        "collectorSize": {
+			"Description": "LogicMonitor Collector Size (Small 100 devices, Medium 500 devices, Large 750 devices).",
+            "Type" : "String",
+            "AllowedValues" : ["small", "medium", "large"],
+            "Default" : "small"
+        },
+        "lmHost": {
+			"Description": "LogicMonitor Environment",
+            "Type" : "String",
+            "AllowedValues" : ["ans", "anstest"],
+            "Default" : "ans"
+        }
+	},
+
+	
+	"Resources": {
+		"ProdLogicMonitorSG": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"Tags": [{
+						"Key": "Name",
+						"Value": "Prod_LogicMonitor_SG"
+					}
+				],
+				"GroupDescription": "Logic Monitor Security Group",
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+		"ProdLogicMonitorSGRule1": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"DependsOn": "ProdLogicMonitorSG",
+			"Properties": {
+				"GroupId": { "Ref" : "ProdLogicMonitorSG" },
+				"IpProtocol": "-1",
+				"FromPort": "-1",
+				"ToPort": "-1",
+				"SourceSecurityGroupId": { "Ref" : "ProdLogicMonitorSG" }
+			}
+        },
+
+        "Collector1" : {
+            "Type" : "AWS::EC2::Instance",
+            "Properties" : {
+               "AvailabilityZone" : { 
+                   "Fn::Select": ["0", {
+                       "Fn::GetAZs": {
+                           "Ref": "AWS::Region"
+                           }
+                        }
+                    ]},  
+               "ImageId" : { "Ref" : "ImageID" },
+               "InstanceInitiatedShutdownBehavior" : "stop",
+               "InstanceType" : { "Ref" : "InstanceType" },
+               "KeyName" : { "Ref" : "InstanceKey" },
+               "Monitoring" : "false",
+               "NetworkInterfaces" : [{
+                    "AssociatePublicIpAddress" : "True",
+                    "DeleteOnTermination" : "True",
+                    "SubnetId" : { "Ref" : "SubnetA" },
+                    "GroupSet": [{"Fn::GetAtt" : ["ProdLogicMonitorSG", "GroupId"]}],
+                    "DeviceIndex" : "0"
+                }],
+               "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "LogicMonitor-Collector-2"
+                },
+                {
+                    "Key": "Application Name",
+                    "Value": "LogicMonitor"
+                },
+                {
+                    "Key" : "Criticality",
+                    "Value" : "Tier 2"
+                },
+                {
+                    "Key" : "Environment",
+                    "Value" : "Prod"
+                },
+                {
+                    "Key" : "Owner",
+                    "Value" : "ANS"
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "", [
+                                "#!/bin/bash \n",
+                                "yum update -y \n",
+                                "yum search python35 \n",
+                                "yum install python35-virtualenv -y \n",
+                                "yum install python-pip -y \n",
+                                "alternatives --set python /usr/bin/python3.5 \n",
+                                "pip install requests \n",
+                                "wget https://raw.githubusercontent.com/ans-cloud/aws/master/LogicMonitor-Collector-PublicIP/CreateLMCollector.py \n",
+                                "python CreateLMCollector.py '",{"Ref": "accessId"},"' '",{"Ref": "accessKey"},"' '",{"Ref": "collectorSize"},"' '",{"Ref": "lmHost"},"' '",{"Ref": "CustomerName"},"'"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "Collector2" : {
+            "Type" : "AWS::EC2::Instance",
+            "Properties" : {
+               "AvailabilityZone" : { 
+                   "Fn::Select": ["1", {
+                       "Fn::GetAZs": {
+                           "Ref": "AWS::Region"
+                           }
+                        }
+                    ]},  
+               "ImageId" : { "Ref" : "ImageID" },
+               "InstanceInitiatedShutdownBehavior" : "stop",
+               "InstanceType" : { "Ref" : "InstanceType" },
+               "KeyName" : { "Ref" : "InstanceKey" },
+               "Monitoring" : "false",
+               "NetworkInterfaces" : [{
+                    "AssociatePublicIpAddress" : "True",
+                    "DeleteOnTermination" : "True",
+                    "SubnetId" : { "Ref" : "SubnetB" },
+                    "GroupSet": [{"Fn::GetAtt" : ["ProdLogicMonitorSG", "GroupId"]}],
+                    "DeviceIndex" : "0"
+                }],
+               "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "LogicMonitor-Collector-1"
+                },
+                {
+                    "Key": "Application Name",
+                    "Value": "LogicMonitor"
+                },
+                {
+                    "Key" : "Criticality",
+                    "Value" : "Tier 2"
+                },
+                {
+                    "Key" : "Environment",
+                    "Value" : "Prod"
+                },
+                {
+                    "Key" : "Owner",
+                    "Value" : "ANS"
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "", [
+                                "#!/bin/bash \n",
+                                "yum update -y \n",
+                                "yum search python35 \n",
+                                "yum install python35-virtualenv -y \n",
+                                "yum install python-pip -y \n",
+                                "alternatives --set python /usr/bin/python3.5 \n",
+                                "pip install requests \n",
+                                "wget https://raw.githubusercontent.com/ans-cloud/aws/master/LogicMonitor-Collector-PublicIP/CreateLMCollector.py \n",
+                                "python CreateLMCollector.py '",{"Ref": "accessId"},"' '",{"Ref": "accessKey"},"' '",{"Ref": "collectorSize"},"' '",{"Ref": "lmHost"},"' '",{"Ref": "CustomerName"},"'"
+                            ]
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
