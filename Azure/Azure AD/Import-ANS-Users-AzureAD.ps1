@@ -19,7 +19,8 @@ Write-Host ""
 #Login to Azure AD
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Connecting to Azure AD..."
 $cred = Get-Credential
-Connect-AzureAD -Credential $cred
+$tenantid = Read-Host "Please input your Azure Active Directory Tenant/Directory ID"
+Connect-AzureAD -Credential $cred -TenantId $tenantid
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Connected to Azure AD successfully"
 Write-Host ""
 
@@ -27,8 +28,7 @@ Write-Host ""
 #Set CSV Directory Path and Import CSVs
 $CSVPath = Read-Host "Please input the directory path to the CSV locations"
 $secondLineInvitations = import-csv "$CSVPath\2nd Line ANS Users.csv"
-$thirdLineInvitation = import-csv "$CSVPath\3rd Line ANS Users.csv"
-$invitations = $secondLineInvitations + $thirdLineInvitation
+$thirdLineInvitations = import-csv "$CSVPath\3rd Line ANS Users.csv"
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Imported CSV successfully!"
 Write-Host ""
 
@@ -38,7 +38,21 @@ $messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
 $messageInfo.customizedMessageBody = "Hey there! Check this out. I created an invitation through PowerShell"
 
 
-foreach ($invite in $invitations) {
+foreach ($invite in $secondLineInvitations) {
+    #Check if the user exists within the directory
+    $result = Get-AzureADUser -SearchString $invite.DisplayName
+
+    #Check if the user doesnt exist before sending the invitation
+    if ($result -eq $null) {
+        Write-Host "Sending Invitation to " $invite.DisplayName
+        New-AzureADMSInvitation -InvitedUserEmailAddress $invite.Email -InvitedUserDisplayName $invite.DisplayName -InviteRedirectUrl https://portal.azure.com -InvitedUserMessageInfo $messageInfo -SendInvitationMessage $true
+    }
+    else {
+    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] User $($invite.DisplayName) already exists within the customers directory"
+    }
+}
+
+foreach ($invite in $thirdLineInvitations) {
     #Check if the user exists within the directory
     $result = Get-AzureADUser -SearchString $invite.DisplayName
 
@@ -124,7 +138,7 @@ Write-Host ""
 
 #Create the users within the 3rd Line Group
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Adding ANS users to the new 3rd Line group..."
-foreach ($invite2 in $thirdLineInvitation) {
+foreach ($invite2 in $thirdLineInvitations) {
     $User2 = Get-AzureADUser -SearchString $invite2.DisplayName
     while (!$User2) {
         Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Waiting for "$invite2.DisplayName
