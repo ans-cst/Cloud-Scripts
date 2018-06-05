@@ -27,8 +27,9 @@ Write-Host ""
 
 #Set CSV Directory Path and Import CSVs
 $CSVPath = Read-Host "Please input the directory path to the CSV locations"
-$secondLineInvitations = import-csv "$CSVPath\2nd Line ANS Users.csv"
+$secondLineInvitations = import-csv -Delimiter ',' "$CSVPath\2nd Line ANS Users.csv"
 $thirdLineInvitations = import-csv "$CSVPath\3rd Line ANS Users.csv"
+$invitations = $secondLineInvitations + $thirdLineInvitations
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Imported CSV successfully!"
 Write-Host ""
 
@@ -38,21 +39,7 @@ $messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
 $messageInfo.customizedMessageBody = "Hey there! Check this out. I created an invitation through PowerShell"
 
 
-foreach ($invite in $secondLineInvitations) {
-    #Check if the user exists within the directory
-    $result = Get-AzureADUser -SearchString $invite.DisplayName
-
-    #Check if the user doesnt exist before sending the invitation
-    if ($result -eq $null) {
-        Write-Host "Sending Invitation to " $invite.DisplayName
-        New-AzureADMSInvitation -InvitedUserEmailAddress $invite.Email -InvitedUserDisplayName $invite.DisplayName -InviteRedirectUrl https://portal.azure.com -InvitedUserMessageInfo $messageInfo -SendInvitationMessage $true
-    }
-    else {
-    Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] User $($invite.DisplayName) already exists within the customers directory"
-    }
-}
-
-foreach ($invite in $thirdLineInvitations) {
+foreach ($invite in $invitations) {
     #Check if the user exists within the directory
     $result = Get-AzureADUser -SearchString $invite.DisplayName
 
