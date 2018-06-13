@@ -3,20 +3,20 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "vmName": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 15,
-        "metadata": {
-          "description": "Display Name for the Virtual Machine"
-        }
-      },
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 13,
+      "metadata": {
+        "description": "Display Name for the Virtual Machine"
+      }
+    },
     "vmSize": {
-        "type": "string",
-        "allowedValues": ["Standard_D1_v2","Standard_D2_v3","Standard_D4_v3"],
-        "metadata": {
-          "description": "VM Size/Type for the Virtual Machine"
-        }
-      },    
+      "type": "string",
+      "allowedValues": ["Standard_D1_v2","Standard_D2_v3","Standard_D4_v3"],
+      "metadata": {
+        "description": "VM Size/Type for the Virtual Machine"
+      }
+    },    
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -63,34 +63,6 @@
           "description": "LogicMonitor Environment"
         }    
     },
-    "vnetPrefix": {
-      "defaultValue": "10.0.0.0/16",
-      "type": "string",
-      "metadata": {
-        "description": "Enter Virtual Network address prefix"
-      }    
-    },
-    "subnetPrefix": {
-      "defaultValue": "10.0.0.0/24",
-      "type": "string",
-      "metadata": {
-        "description": "Enter Subnet address prefix"
-      }    
-    },
-    "tagBusinessUnit": {
-      "defaultValue": "IT",
-      "type": "string",
-      "metadata": {
-        "description": "Enter business unit tag value"
-      }    
-    },
-    "tagCostCentre": {
-      "defaultValue": "IT",
-      "type": "string",
-      "metadata": {
-        "description": "Enter cost centre tag value"
-      }    
-    },
     "tagOwner": {
       "defaultValue": "Firstname Lastname",
       "type": "string",
@@ -104,16 +76,10 @@
       "metadata": {
         "description": "Enter environment tag value"
       }    
-    },
-    "tagApplicationRoles": {
-      "defaultValue": "Monitoring",
-      "type": "string",
-      "metadata": {
-        "description": "Enter application role tag value"
-      }    
     }
   },
   "variables": {
+    "availabilitySetName": "[concat(parameters('vmName'),'-as')]",
     "subnetName": "[concat(parameters('vmName'),'-subnet')]",
     "virtualNetworkName": "[concat(parameters('vmName'),'-vnet')]",
     "virtualNetworkId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
@@ -130,11 +96,8 @@
       "location": "[resourceGroup().location]",
       "name": "[variables('networkSecurityGroup')]",
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
       },
       "properties": {
         "securityRules": [
@@ -156,68 +119,17 @@
       }
     },
     {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
-        "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroup'))]"
-      ],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[parameters('vnetPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnetName')]",
-            "properties": {
-              "addressPrefix": "[parameters('subnetPrefix')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroup'))]"
-                }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('storageAccountName')]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
-        "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
-      },
-      "kind": "Storage",
-      "properties": {}
-    },
-    {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('vmName'),'-nic')]",
+      "name": "[concat(parameters('vmName'),'-nic', copyindex(1))]",
       "apiVersion": "2017-03-01",
       "location": "[resourceGroup().location]",
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
+      },
+      "copy": {
+        "name": "nicLoop",
+        "count": 2
       },
       "dependsOn": [
         "[variables('virtualNetworkName')]"
@@ -238,26 +150,29 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-
-      "name": "[parameters('vmName')]",
+      "name": "[concat(parameters('vmName'), copyIndex(1))]",
       "apiVersion": "2017-03-30",
       "location": "[resourceGroup().location]",
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
+      },
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": 2
       },
       "dependsOn": [
-        "[concat(parameters('vmName'),'-nic')]"
+        "nicLoop"
       ],
       "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+        },
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[parameters('vmName')]",
+          "computerName": "[concat(parameters('vmName'), copyIndex(1))]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -282,7 +197,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'-nic'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'-nic', copyindex(1)))]"
             }
           ]
         }
@@ -290,13 +205,14 @@
     },
     {
         "type": "Microsoft.Compute/virtualMachines/extensions",
-        "name": "[concat(parameters('vmName'), '/', 'LogicMonitor-Collector')]",
+        "name": "[concat(parameters('vmName'), copyIndex(1), '/', 'LogicMonitor-Collector')]",
         "apiVersion": "2017-03-30",
         "location": "[resourceGroup().location]",
+        "copy": {
+          "name": "virtualMachineExtLoop",
+          "count": 2
+        },
         "scale": null,
-        "dependsOn": [
-          "[parameters('vmName')]"
-        ],
         "properties": {
             "publisher": "Microsoft.Compute",
             "type": "CustomScriptExtension",
@@ -310,7 +226,10 @@
             "protectedSettings": {
                 "commandToExecute": "[concat ('powershell -ExecutionPolicy Unrestricted -File ', variables('script'), ' ', variables('arguments'))]"  
             }
-        }
+        },
+        "dependsOn": [
+          "virtualMachineLoop"
+        ]
     }
   ]
 }

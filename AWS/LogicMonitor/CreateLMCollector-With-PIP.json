@@ -29,7 +29,7 @@
             "AllowedValues" : ["t2.small", "t2.medium", "t2.xlarge"]
         },
         "CustomerName": {
-			"Description": "Customers Sostenuto Id.",
+			"Description": "Customers Collector Group Name",
             "Type" : "String"
         },
         "ImageID": {

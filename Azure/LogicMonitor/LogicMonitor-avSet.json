@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 13,
+            "metadata": {
+              "description": "Display Name for the Virtual Machine"
+            }
+        },
+        "tagOwner": {
+            "defaultValue": "Firstname Lastname",
+            "type": "string",
+            "metadata": {
+              "description": "Enter owners tag value"
+            }    
+        },
+          "tagEnvironment": {
+            "defaultValue": "Production",
+            "type": "string",
+            "metadata": {
+              "description": "Enter environment tag value"
+            }    
+        }
+    },
+    "variables": {
+        "availabilitySetName": "[concat(parameters('vmName'),'-as')]"
+    },
+    "resources": [{
+        "type": "Microsoft.Compute/availabilitySets",
+        "name": "[variables('availabilitySetName')]",
+        "apiVersion": "2017-03-30",
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "Owner": "[parameters('tagOwner')]",
+          "Environment": "[parameters('tagEnvironment')]"
+        },
+        "sku": {
+          "name": "Aligned"
+        },
+        "properties": {
+            "platformFaultDomainCount": 2,
+            "platformUpdateDomainCount": 2
+        }
+    }],
+    "outputs": {}
+}

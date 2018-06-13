@@ -2,6 +2,12 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "FailoverEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether the Collectors are to be deployed in an avSet or Single VM."
+      }
+    },
     "vmName": {
       "type": "string",
       "minLength": 1,
@@ -63,37 +69,42 @@
           "description": "LogicMonitor Environment"
         }    
     },
-    "existingVnetResourceGroupName": {
+    "NewOrExistingvNet": {
+      "type": "string",
+      "allowedValues": ["New","Existing"],
+      "metadata": {
+        "description": "Virtual Machines are to be deployed in a new or existing vNet"
+      }
+    },
+    "vNetResourceGroupName": {
       "type": "string",
       "metadata": {
         "description": "Name of the Resource Group for the existing Virtual Network."
       }
     },
-    "existingVnetName": {
+    "vNetName": {
       "type": "string",
       "metadata": {
         "description": "Enter Existing Virtual Network Name"
-      }    
+      }
     },
-    "existingSubnetName": {
+    "vNetPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Enter vNet CIDR block if creating a new vNet"
+      }  
+    },
+    "subnetName": {
       "type": "string",
       "metadata": {
         "description": "Enter Existing Subnet Name"
       }    
     },
-    "tagBusinessUnit": {
-      "defaultValue": "IT",
+    "subnetPrefix": {
       "type": "string",
       "metadata": {
-        "description": "Enter business unit tag value"
-      }    
-    },
-    "tagCostCentre": {
-      "defaultValue": "IT",
-      "type": "string",
-      "metadata": {
-        "description": "Enter cost centre tag value"
-      }    
+        "description": "Enter Subnet CIDR block if creating a new vNet"
+      }  
     },
     "tagOwner": {
       "defaultValue": "Firstname Lastname",
@@ -108,18 +119,12 @@
       "metadata": {
         "description": "Enter environment tag value"
       }    
-    },
-    "tagApplicationRoles": {
-      "defaultValue": "Monitoring",
-      "type": "string",
-      "metadata": {
-        "description": "Enter application role tag value"
-      }    
     }
   },
   "variables": {
-    "virtualNetworkId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVnetName'))]",
-    "subnetRef": "[concat(variables('virtualNetworkId'),'/subnets/', parameters('existingSubnetName'))]",
+    "availabilitySetName": "[concat('AS-',parameters('vmName'))]",
+    "virtualNetworkId": "[resourceId(parameters('VnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVnetName'))]",
+    "subnetRef": "[concat(variables('virtualNetworkId'),'/subnets/', parameters('SubnetName'))]",
     "networkSecurityGroup": "[concat(parameters('vmName'),'-nsg')]",
     "scriptLocation": "https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/LogicMonitor/LogicMonitor-Collector-Existing-Network/CreateLMCollector.ps1",
     "script": "CreateLMCollector.ps1",
@@ -133,11 +138,8 @@
       "location": "[resourceGroup().location]",
       "name": "[variables('networkSecurityGroup')]",
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
       },
       "properties": {
         "securityRules": [
@@ -159,6 +161,58 @@
       }
     },
     {
+      "condition": "[equals(parameters('FailoverEnabled'), 'true')]",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('availabilitySetName')]",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]"
+      },
+      "sku": {
+        "name": "Aligned"
+      },
+	    "properties": {
+	      "platformFaultDomainCount": 2,
+	      "platformUpdateDomainCount": 2
+        }
+    },
+    {
+      "condition": "[equals(parameters('NewOrExistingvNet'), 'New')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('vNetName')]",
+      "apiVersion": "2017-03-01",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Owner": "[parameters('tagOwner')]",
+        "Environment": "[parameters('tagEnvironment')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroup'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroup'))]"
+                }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "condition": "[equals(parameters('FailoverEnabled'), 'false')]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('vmName'),'-nic')]",
       "apiVersion": "2017-03-01",
@@ -167,11 +221,8 @@
         "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroup'))]"
       ],
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
       },
       "properties": {
         "networkSecurityGroup": {
@@ -196,11 +247,8 @@
       "apiVersion": "2017-03-30",
       "location": "[resourceGroup().location]",
       "tags": {
-        "Business Unit": "[parameters('tagBusinessUnit')]",
-        "Cost Centre": "[parameters('tagCostCentre')]",
         "Owner": "[parameters('tagOwner')]",
-        "Environment": "[parameters('tagEnvironment')]",
-        "Application Roles": "[parameters('tagApplicationRoles')]"
+        "Environment": "[parameters('tagEnvironment')]"
       },
       "dependsOn": [
         "[concat(parameters('vmName'),'-nic')]"

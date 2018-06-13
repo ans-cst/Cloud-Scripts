@@ -1,0 +1,3 @@
+Tenant Directory ID - 207c1c4e-52d3-4eb2-9625-adcd3968b029
+CloudHealth Application ID - cd6e17f1-23d3-41ae-97a2-4a341ca31a1b
+LogicMonitor Application ID - 55fa7ed6-2dfd-4d9f-9e1f-052654b69614
