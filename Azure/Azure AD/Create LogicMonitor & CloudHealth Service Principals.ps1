@@ -40,8 +40,8 @@ Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Subscription successfully 
 Write-Host ""
 
 #Output Tenant ID
-$tenant = Get-AzureRmTenant
-"Tenant Directory ID - " + $tenant.Id | Out-File -FilePath "$FilePath\ServicePrincipals.txt" -Append
+$tenant = Get-AzureRmSubscription -SubscriptionId $SubId
+"Tenant Directory ID - " + $tenant.TenantId | Out-File -Encoding Ascii -FilePath "$FilePath\ServicePrincipals.txt" -Append
 
 #Values for CloudHealth Azure AD app:
 $chtappName = "ans_cloudhealth"
@@ -85,6 +85,7 @@ $lmroleassignment = New-AzureRmRoleAssignment -RoleDefinitionName Reader -Servic
 
 #Output Required Information
 "LogicMonitor Application ID - " + $lmsvcprincipal.ApplicationId | Out-File -FilePath "$FilePath\ServicePrincipals.txt" -Append
+"Please provide the text file output along with the passwords used for each App Registration to ANS." | Out-File -FilePath "$FilePath\ServicePrincipals.txt" -Append
 
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] LogicMonitor App Registration Completed successfully!"
 
