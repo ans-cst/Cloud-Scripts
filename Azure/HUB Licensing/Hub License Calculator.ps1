@@ -50,7 +50,7 @@ foreach ($sheet in $xl.sheets) {
     "Sheet1" {
       #Set Sheet Name and Column Headers
       $sheet.name = "Instances for HUB" 
-      $sheet.range("A1:F1").cells = ("Name","Type","Cost (PCM)","Saving (PCM)","Licenses","Saving Per License")
+      $sheet.range("A1:G1").cells = ("VMName","ResourceGroup","Type","Cost (PCM)","Saving (PCM)","Licenses","Saving Per License")
       $HubSheet=$sheet
     }
     "Sheet2" { 
@@ -89,12 +89,12 @@ foreach ($VM in Get-AzureRmVm) {
     #Output VMs with HUB Licensing Disabled
     if ( -not ($VM.LicenseType)) {
       $HubRowCount++
-      $HubSheet.range("A"+$HubRowCount.ToString()+":"+"B"+$HubRowCount.ToString()).cells=($VM.Name,$VM.HardwareProfile.VmSize)
+      $HubSheet.range("A"+$HubRowCount.ToString()+":"+"C"+$HubRowCount.ToString()).cells=($VM.Name,$VM.ResourceGroupName,$VM.HardwareProfile.VmSize)
       $Lookup='=VLOOKUP(B'+$HubRowCount.ToString()+',''Rate Card''!$A$2:$E$'+$HubRowCount.ToString()
-      $HubSheet.range("C"+$HubRowCount.ToString()+":"+"C"+$HubRowCount.ToString()).formula=$Lookup+',3)'
-      $HubSheet.range("D"+$HubRowCount.ToString()+":"+"D"+$HubRowCount.ToString()).formula=$Lookup+',4)'
-      $HubSheet.range("E"+$HubRowCount.ToString()+":"+"E"+$HubRowCount.ToString()).formula=$Lookup+',2)'
-      $HubSheet.range("F"+$HubRowCount.ToString()+":"+"F"+$HubRowCount.ToString()).formula=$Lookup+',5)'
+      $HubSheet.range("D"+$HubRowCount.ToString()+":"+"D"+$HubRowCount.ToString()).formula=$Lookup+',3)'
+      $HubSheet.range("E"+$HubRowCount.ToString()+":"+"E"+$HubRowCount.ToString()).formula=$Lookup+',4)'
+      $HubSheet.range("F"+$HubRowCount.ToString()+":"+"F"+$HubRowCount.ToString()).formula=$Lookup+',2)'
+      $HubSheet.range("G"+$HubRowCount.ToString()+":"+"G"+$HubRowCount.ToString()).formula=$Lookup+',5)'
     } 
 
     #Output VMs with HUB Licensing Enabled
@@ -111,6 +111,5 @@ foreach ($VM in Get-AzureRmVm) {
 $HubSheet.Activate() 
 $HubSheet.UsedRange.Sort($HubSheet.Range("F2:F"+$HubRowCount.ToString()),2)
 $HubSheet.Columns.Item(6).Hidden = $True
-echo ("In use count "+$InUseLicenses.ToString())
 
 Write-Host "[$(get-date -Format "dd/mm/yy hh:mm:ss")] Excel Document Created Successfully!"
