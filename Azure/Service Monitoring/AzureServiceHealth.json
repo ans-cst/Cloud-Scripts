@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "emailAddresses": {
+            "type": "object",
+            "defaultValue": {
+                "info": [
+                    {
+                        "name": "ANS ServiceDesk",
+                        "email": "servicedesk@ansgroup.co.uk"
+                    },
+                    {
+                        "name": "ANS LogicMonitor",
+                        "email": ""
+                    }
+                ]
+            }
+        },
+        "regionList": {
+            "type": "array",
+            "defaultValue": [
+                "West Europe",
+                "North Europe"
+            ]
+        },
+        "serviceList": {
+            "type": "array",
+            "defaultValue": [
+                "Virtual Machines",
+                "Virtual Network"
+            ]
+        }
+    },
+    "variables": {
+        "subscriptionId": "[subscription().subscriptionId]"
+    },
+    "resources": [
+        {
+            "type": "microsoft.insights/actionGroups",
+            "name": "ANS Email",
+            "apiVersion": "2018-03-01",
+            "location": "Global",
+            "properties": {
+                "groupShortName": "ANS Email",
+                "enabled": true,
+                "copy": [
+                    {
+                        "name": "emailReceivers",
+                        "count": "[length(parameters('emailAddresses').info)]",
+                        "input": {
+                            "name": "[parameters('emailAddresses').info[copyIndex('emailReceivers')].name]",
+                            "emailAddress": "[parameters('emailAddresses').info[copyIndex('emailReceivers')].email]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "microsoft.insights/activityLogAlerts",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', 'ANS Email')]"
+            ],
+            "name": "Azure Service Outage or Planned Maintenance",
+            "apiVersion": "2017-04-01",
+            "location": "Global",
+            "properties": {
+                "description": "Triggers Email Notification for Azure Service Outage or Planned Maintenance.",
+                "enabled": true,
+                "scopes": [
+                    "[concat('/subscriptions/', variables('subscriptionId'))]"
+                ],
+                "condition": {
+                    "allOf": [
+                        {
+                            "field": "category",
+                            "equals": "ServiceHealth"
+                        },
+                        {
+                            "field": "properties.incidentType",
+                            "equals": "Incident"
+                        },
+                        {
+                            "field": "properties.incidentType",
+                            "equals": "Maintenance"
+                        },
+                        {
+                            "field": "properties.impactedServices[*].ServiceName",
+                            "equals": null,
+                            "containsAny": "[parameters('serviceList')]"
+                        },
+                        {
+                            "field": "properties.impactedServices[*].ImpactedRegions[*].RegionName",
+                            "equals": null,
+                            "containsAny": "[parameters('regionList')]"
+                        }
+                    ]
+                },
+                "actions": {
+                    "actionGroups": [
+                        {
+                            "actionGroupId": "[resourceId('microsoft.insights/actionGroups', 'ANS Email')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
