@@ -7,11 +7,11 @@
                 "info": [
                     {
                         "name": "ANS ServiceDesk",
-                        "email": "ryan.froggatt@ansgroup.co.uk"
+                        "email": "servicedesk@ansgroup.co.uk"
                     },
                     {
                         "name": "ANS LogicMonitor",
-                        "email": "froggatt2010@live.co.uk"
+                        "email": "alerting@ansgroup.co.uk"
                     }
                 ]
             }
