@@ -89,7 +89,7 @@
             ],
             "apiVersion": "2017-10-01",
             "properties": {
-                "addressPrefix": "10.0.254.0"
+                "addressPrefix": "10.0.254.0/24"
             }
         },
         {
