@@ -41,6 +41,9 @@ $RG = Read-Host "Enter the ResourceGroupName to deploy the Master CloudStart Tem
 
 # Create Required Resource Groups
 New-AzureRmResourceGroup -Name RG-WE-ARM-DEPLOYMENTS -Location "West Europe"
+New-AzureRmResourceGroup -Name RG-WE-HUB-NETWORKING -Location "West Europe"
+New-AzureRmResourceGroup -Name RG-WE-SPOKE1-NETWORKING -Location "West Europe"
+New-AzureRmResourceGroup -Name RG-WE-SPOKE2-NETWORKING -Location "West Europe"
 
 # Deploy Core Networking Resources
 New-AzureRmResourceGroupDeployment -ResourceGroupName RG-WE-ARM-DEPLOYMENTS -TemplateUri 'https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/ARM%20Templates/CloudStart/Networking-Master-CloudStart.json' `

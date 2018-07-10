@@ -30,7 +30,7 @@
         "spokes": {
             "value": [
                 {
-                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
                     "vnet": {
                         "name": "VN-WE-SPOKE1",
                         "addressPrefixes": [
@@ -56,7 +56,7 @@
                     ]
                 },
                 {
-                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "resourceGroup": "RG-WE-SPOKE2-NETWORKING",
                     "vnet": {
                         "name": "VN-WE-SPOKE2",
                         "addressPrefixes": [
