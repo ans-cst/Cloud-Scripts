@@ -37,6 +37,7 @@ Write-Host ""
 
 #Configure Azure Location to Deploy CloudStart
 $Location = Read-Host "Enter the location to deploy the CloudStart"
+$RG = Read-Host "Enter the ResourceGroupName to deploy the Master CloudStart Template"
 
 # Create Required Resource Groups
 New-AzureRmResourceGroup -Name RG-WE-ARM-DEPLOYMENTS -Location "West Europe"
