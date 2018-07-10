@@ -67,17 +67,17 @@
                         {
                             "name": "SN-WE-SPOKE2-PUBLIC",
                             "addressPrefix": "10.2.0.0/24",
-                            "networkSecurityGroup": "NSG-WE-SPOKE1-PUBLIC"
+                            "networkSecurityGroup": "NSG-WE-SPOKE2-PUBLIC"
                         },
                         {
                             "name": "SN-WE-SPOKE2-APP",
                             "addressPrefix": "10.2.1.0/24",
-                            "networkSecurityGroup": "NSG-WE-SPOKE1-APP"
+                            "networkSecurityGroup": "NSG-WE-SPOKE2-APP"
                         },
                         {
                             "name": "SN-WE-SPOKE2-DATABASE",
                             "addressPrefix": "10.2.2.0/24",
-                            "networkSecurityGroup": "NSG-WE-SPOKE1-DATABASE"
+                            "networkSecurityGroup": "NSG-WE-SPOKE2-DATABASE"
                         }
                     ]
                 }
