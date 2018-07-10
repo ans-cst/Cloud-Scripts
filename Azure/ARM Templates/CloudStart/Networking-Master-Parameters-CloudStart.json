@@ -25,7 +25,7 @@
                 ],
                 "createGateway": false,
                 "gatewaySku": "Basic"
-            },
+            }
         },
         "spokes": {
             "value": [
@@ -68,7 +68,7 @@
                             "name": "SN-WE-SPOKE2-PUBLIC",
                             "addressPrefix": "10.2.0.0/24",
                             "networkSecurityGroup": "NSG-WE-SPOKE1-PUBLIC"
-                        }
+                        },
                         {
                             "name": "SN-WE-SPOKE2-APP",
                             "addressPrefix": "10.2.1.0/24",

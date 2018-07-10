@@ -43,4 +43,4 @@ New-AzureRmResourceGroup -Name RG-WE-ARM-DEPLOYMENTS -Location "West Europe"
 
 # Deploy Core Networking Resources
 New-AzureRmResourceGroupDeployment -ResourceGroupName RG-WE-ARM-DEPLOYMENTS -TemplateUri https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/ARM%20Templates/CloudStart/Networking-Master-CloudStart.json `
--TemplateParameterUri https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/ARM%20Templates/CloudStart/Networking-Master-CloudStart-Parameters.json
+-TemplateParameterUri https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/ARM%20Templates/CloudStart/Networking-Master-Parameters-CloudStart.json
