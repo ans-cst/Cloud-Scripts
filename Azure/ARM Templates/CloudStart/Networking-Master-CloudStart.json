@@ -160,9 +160,9 @@
         }
     },
     "variables": {
-        "hubUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-HUB-CloudStart.json')]",
-        "spokeUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-Spokes-CloudStart.json')]",
-        "nsgUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-NSG-CloudStart.json')]",
+        "hubUrl": "[uri(deployment().properties.templateLink.uri, '/CloudStart/Networking-HUB-CloudStart.json')]",
+        "spokeUrl": "[uri(deployment().properties.templateLink.uri, '/CloudStart/Networking-Spokes-CloudStart.json')]",
+        "nsgUrl": "[uri(deployment().properties.templateLink.uri, '/CloudStart/Networking-NSG-CloudStart.json')]",
         "hubDeploymentName": "[concat('deployHub-', parameters('hub').vnet.name)]"
     },
     "resources": [
