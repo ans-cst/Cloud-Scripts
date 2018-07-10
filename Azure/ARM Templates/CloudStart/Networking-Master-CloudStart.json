@@ -1,0 +1,270 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hub": {
+            "type": "object",
+            "defaultValue": {
+                "resourceGroup": "RG-WE-HUB-NETWORKING",
+                "vnet": {
+                    "name": "VN-WE-HUB",
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "SN-WE-HUB-MANAGEMENT",
+                        "addressPrefix": "10.0.0.0/24",
+                        "networkSecurityGroup": "NSG-WE-HUB-MANAGEMENT"
+                    }
+                ],
+                "createGateway": false,
+                "gatewaySku": "Basic"
+            },
+            "metadata": {
+                "description": "Hub object.  See defaultValue for example. The gatewaySku string is any of Basic|VpnGw1|VpnGw2|VpnGw3"
+            }
+        },
+        "spokes": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "vnet": {
+                        "name": "VN-WE-SPOKE1",
+                        "addressPrefixes": [
+                            "10.1.0.0/16"
+                        ]
+                    },
+                    "subnets": [
+                        {
+                            "name": "SN-WE-SPOKE1-PUBLIC",
+                            "addressPrefix": "10.1.0.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-PUBLIC"
+                        },
+                        {
+                            "name": "SN-WE-SPOKE1-PRIVATE",
+                            "addressPrefix": "10.1.1.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-PRIVATE"
+                        }
+                    ]
+                },
+                {
+                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "vnet": {
+                        "name": "VN-WE-SPOKE2",
+                        "addressPrefixes": [
+                            "10.2.0.0/16"
+                        ]
+                    },
+                    "subnets": [
+                        {
+                            "name": "SN-WE-SPOKE2-PRIVATE",
+                            "addressPrefix": "10.2.0.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-PRIVATE"
+                        }
+                    ]
+                }
+            ],
+            "metadata": {
+                "description": "Array of spoke objects. See defaultValue for example."
+            }
+        },
+        "securitygroups": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "name": "NSG-WE-HUB-MANAGEMENT",
+                    "resourceGroup": "RG-WE-HUB-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Corp_RDP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Aloow_Corp_SSH",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "22",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE1-PUBLIC",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Internet_HTTP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE1-PRIVATE",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_App_Traffic",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "123",
+                            "sourceAddressPrefix": "10.0.0.0/16",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE2-PRIVATE",
+                    "resourceGroup": "RG-WE-SPOKE2-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_App_Traffic",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/24",
+                            "destinationPortRange": "123",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        }
+                    ]
+                }
+            ],
+            "metadata": {
+                "description": "Array of network security group objects. See defaultValue for example."
+            }
+        }
+    },
+    "variables": {
+        "hubUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-HUB.json')]",
+        "spokeUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-Spokes.json')]",
+        "nsgUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-NSG.json')]",
+        "hubDeploymentName": "[concat('deployHub-', parameters('hub').vnet.name)]"
+    },
+    "resources": [
+        {
+            "name": "[variables('hubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[parameters('hub').resourceGroup]",
+            "dependsOn": [
+                "nsgcopy"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('hub').vnet.name]"
+                    },
+                    "vNetAddressPrefixes": {
+                        "value": "[parameters('hub').vnet.addressPrefixes]"
+                    },
+                    "subnets": {
+                        "value": "[parameters('hub').subnets]"
+                    },
+                    "createGateway": {
+                        "value": "[parameters('hub').createGateway]"
+                    },
+                    "gatewaySku": {
+                        "value": "[parameters('hub').gatewaySku]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('hubUrl')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[concat('deploySpoke', copyIndex(1), '-', parameters('spokes')[copyIndex()].vnet.name)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[parameters('spokes')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('hubDeploymentName'))]",
+                "nsgcopy"
+            ],
+            "copy": {
+                "name": "spokecopy",
+                "count": "[length(parameters('spokes'))]",
+                "mode": "Serial",
+                "batchSize": 1
+            },
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "peer": {
+                        "value": true
+                    },
+                    "hub": {
+                        "value": "[parameters('hub')]"
+                    },
+                    "spoke": {
+                        "value": "[parameters('spokes')[copyIndex()]]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('spokeUrl')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[concat('deployNsg', copyIndex(1), '-', parameters('securitygroups')[copyIndex()].name)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[parameters('securitygroups')[copyIndex()].resourceGroup]",
+            "copy": {
+                "name": "nsgcopy",
+                "count": "[length(parameters('securitygroups'))]",
+                "mode": "Serial",
+                "batchSize": 1
+            },
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "securitygroupname": {
+                        "value": "[parameters('securitygroups')[copyIndex()].name]"
+                    },
+                    "securitygrouprules": {
+                        "value": "[parameters('securitygroups')[copyIndex()].nsgrules]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('nsgUrl')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "vpnGatewayPipId": {
+            "type": "string",
+            "value": "[reference(variables('hubDeploymentName')).outputs.gatewayPipId.value]"
+        }
+    }
+}

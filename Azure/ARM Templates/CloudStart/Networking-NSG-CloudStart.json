@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "securityGroupName": {
+            "type": "string",
+            "defaultValue": "NSG-WE-HUB-MANAGEMENT"
+        },
+        "securityGroupRules": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "ruleName": "Allow_Corp_RDP",
+                    "protocol": "*",
+                    "direction": "Inbound",
+                    "access": "Allow",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationPortRange": "3389",
+                    "destinationAddressPrefix": "*",
+                    "priority": 110
+                },
+                {
+                    "ruleName": "Aloow_Corp_SSH",
+                    "protocol": "*",
+                    "direction": "Inbound",
+                    "access": "Allow",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationPortRange": "22",
+                    "destinationAddressPrefix": "*",
+                    "priority": 120
+                }
+            ]
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('securityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2017-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "copy": [
+                    {
+                        "name": "securityRules",
+                        "count": "[length(parameters('securityGroupRules'))]",
+                        "input": {
+                            "name": "[parameters('securityGroupRules')[copyIndex('securityRules')].ruleName]",
+                            "properties": {
+                                "protocol": "[parameters('securityGroupRules')[copyIndex('securityRules')].protocol]",
+                                "sourcePortRange": "[parameters('securityGroupRules')[copyIndex('securityRules')].sourcePortRange]",
+                                "destinationPortRange": "[parameters('securityGroupRules')[copyIndex('securityRules')].destinationPortRange]",
+                                "sourceAddressPrefix": "[parameters('securityGroupRules')[copyIndex('securityRules')].sourceAddressPrefix]",
+                                "destinationAddressPrefix": "[parameters('securityGroupRules')[copyIndex('securityRules')].destinationAddressPrefix]",
+                                "access": "[parameters('securityGroupRules')[copyIndex('securityRules')].access]",
+                                "priority": "[parameters('securityGroupRules')[copyIndex('securityRules')].priority]",
+                                "direction": "[parameters('securityGroupRules')[copyIndex('securityRules')].direction]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

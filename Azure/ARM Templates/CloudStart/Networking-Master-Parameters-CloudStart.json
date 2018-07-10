@@ -1,0 +1,293 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hub": {
+            "value": {
+                "resourceGroup": "RG-WE-HUB-NETWORKING",
+                "vnet": {
+                    "name": "VN-WE-HUB",
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "SN-WE-HUB-MANAGEMENT",
+                        "addressPrefix": "10.0.0.0/24",
+                        "networkSecurityGroup": "NSG-WE-HUB-MANAGEMENT"
+                    },
+                    {
+                        "name": "SN-WE-HUB-ACTIVEDIRECTORY",
+                        "addressPrefix": "10.0.1.0/24",
+                        "networkSecurityGroup": "NSG-WE-HUB-ACTIVEDIRECTORY"
+                    }
+                ],
+                "createGateway": false,
+                "gatewaySku": "Basic"
+            },
+        },
+        "spokes": {
+            "value": [
+                {
+                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "vnet": {
+                        "name": "VN-WE-SPOKE1",
+                        "addressPrefixes": [
+                            "10.1.0.0/16"
+                        ]
+                    },
+                    "subnets": [
+                        {
+                            "name": "SN-WE-SPOKE1-PUBLIC",
+                            "addressPrefix": "10.1.0.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-PUBLIC"
+                        },
+                        {
+                            "name": "SN-WE-SPOKE1-APP",
+                            "addressPrefix": "10.1.1.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-APP"
+                        },
+                        {
+                            "name": "SN-WE-SPOKE1-DATABASE",
+                            "addressPrefix": "10.1.2.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-DATABASE"
+                        }
+                    ]
+                },
+                {
+                    "resourceGroup": "RG-WE-SPOKES-NETWORKING",
+                    "vnet": {
+                        "name": "VN-WE-SPOKE2",
+                        "addressPrefixes": [
+                            "10.2.0.0/16"
+                        ]
+                    },
+                    "subnets": [
+                        {
+                            "name": "SN-WE-SPOKE2-PUBLIC",
+                            "addressPrefix": "10.2.0.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-PUBLIC"
+                        }
+                        {
+                            "name": "SN-WE-SPOKE2-APP",
+                            "addressPrefix": "10.2.1.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-APP"
+                        },
+                        {
+                            "name": "SN-WE-SPOKE2-DATABASE",
+                            "addressPrefix": "10.2.2.0/24",
+                            "networkSecurityGroup": "NSG-WE-SPOKE1-DATABASE"
+                        }
+                    ]
+                }
+            ]
+        },
+        "securitygroups": {
+            "value": [
+                {
+                    "name": "NSG-WE-HUB-MANAGEMENT",
+                    "resourceGroup": "RG-WE-HUB-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Corp_RDP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "185.12.194.1",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Corp_SSH",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "185.12.194.1",
+                            "destinationPortRange": "22",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-HUB-ACTIVEDIRECTORY",
+                    "resourceGroup": "RG-WE-HUB-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Management_RDP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/24",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Management_SSH",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.0.0.0/24",
+                            "destinationPortRange": "22",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE1-PUBLIC",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Internet_HTTP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Internet_HTTPS",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE1-APP",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Public_HTTP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.1.0.0/24",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Public_HTTPS",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.1.0.0/24",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE1-DATABASE",
+                    "resourceGroup": "RG-WE-SPOKE1-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_App_SQL",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.1.1.0/24",
+                            "destinationPortRange": "1433",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE2-PUBLIC",
+                    "resourceGroup": "RG-WE-SPOKE2-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Internet_HTTP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Internet_HTTPS",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE2-APP",
+                    "resourceGroup": "RG-WE-SPOKE2-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_Public_HTTP",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.2.0.0/24",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        },
+                        {
+                            "ruleName": "Allow_Public_HTTPS",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.2.0.0/24",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "priority": 120
+                        }
+                    ]
+                },
+                {
+                    "name": "NSG-WE-SPOKE2-DATABASE",
+                    "resourceGroup": "RG-WE-SPOKE2-NETWORKING",
+                    "nsgrules": [
+                        {
+                            "ruleName": "Allow_App_SQL",
+                            "protocol": "*",
+                            "direction": "Inbound",
+                            "access": "Allow",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "10.2.1.0/24",
+                            "destinationPortRange": "1433",
+                            "destinationAddressPrefix": "*",
+                            "priority": 110
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
