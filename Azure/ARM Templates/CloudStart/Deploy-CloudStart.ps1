@@ -37,13 +37,14 @@ Write-Host ""
 
 #Configure Azure Location to Deploy CloudStart
 $Location = Read-Host "Enter the location to deploy the CloudStart"
-$RG = Read-Host "Enter the ResourceGroupName to deploy the Master CloudStart Template"
+$ResourceGroups = Read-Host "Enter a Comma Delimitted list of ResourceGroupNames required to deploy the Templates"
+$ResourceGroups = $ResourceGroups.replace(' ', '') -split ','
 
 # Create Required Resource Groups
-New-AzureRmResourceGroup -Name RG-WE-ARM-DEPLOYMENTS -Location "West Europe"
-New-AzureRmResourceGroup -Name RG-WE-HUB-NETWORKING -Location "West Europe"
-New-AzureRmResourceGroup -Name RG-WE-SPOKE1-NETWORKING -Location "West Europe"
-New-AzureRmResourceGroup -Name RG-WE-SPOKE2-NETWORKING -Location "West Europe"
+foreach ($RG in $ResourceGroups) {
+    #New-AzureRmResourceGroup -Name $RG -Location $Location
+    Write-Host "Name is - $RG"
+}
 
 # Deploy Core Networking Resources
 New-AzureRmResourceGroupDeployment -ResourceGroupName RG-WE-ARM-DEPLOYMENTS -TemplateUri 'https://raw.githubusercontent.com/ans-cst/Cloud-Scripts/master/Azure/ARM%20Templates/CloudStart/Networking-Master-CloudStart.json' `
