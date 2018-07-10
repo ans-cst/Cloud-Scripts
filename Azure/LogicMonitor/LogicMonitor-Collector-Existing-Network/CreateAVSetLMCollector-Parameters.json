@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "value": "VM-WE-ANS-LM-"
+        },
+        "vmSize": {
+            "value": "Standard_D1_v2"
+        },
+        "adminUsername": {
+            "value": "ANS-Admin"
+        },
+        "adminPassword": {
+            "value": ""
+        },
+        "lmCollectorGroup": {
+            "value": ""
+        },
+        "lmAccessKey": {
+            "value": ""
+        },
+        "lmSecretKey": {
+            "value": ""
+        },
+        "lmCollectorSize": {
+            "value": "small"
+        },
+        "lmHost": {
+            "value": "ans"
+        },
+        "existingVnetResourceGroupName": {
+            "value": "RG-WE-HUB-NETWORKING"
+        },
+        "existingVnetName": {
+            "value": "VN-WE-HUB"
+        },
+        "existingSubnetName": {
+            "value": "SN-WE-HUB-MANAGEMENT"
+        },
+        "tagBusinessUnit": {
+            "value": "IT"
+        },
+        "tagCostCentre": {
+            "value": "ANS"
+        },
+        "tagOwner": {
+            "value": "ANS"
+        },
+        "tagEnvironment": {
+            "value": "Production"
+        },
+        "tagApplicationRoles": {
+            "value": "Monitoring"
+        }
+    }
+}
