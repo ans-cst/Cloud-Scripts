@@ -160,9 +160,9 @@
         }
     },
     "variables": {
-        "hubUrl": "[uri('https://github.com/ans-cst/Cloud-Scripts/blob/master/Azure/ARM%20Templates/CloudStart/', 'Networking-HUB-CloudStart.json')]",
-        "spokeUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-Spokes-CloudStart.json')]",
-        "nsgUrl": "[uri(deployment().properties.templateLink.uri, 'Networking-NSG-CloudStart.json')]",
+        "hubUrl": "[concat(deployment().properties.templateLink.uri, 'Networking-HUB-CloudStart.json')]",
+        "spokeUrl": "[concat(deployment().properties.templateLink.uri, 'Networking-Spokes-CloudStart.json')]",
+        "nsgUrl": "[concat(deployment().properties.templateLink.uri, 'Networking-NSG-CloudStart.json')]",
         "hubDeploymentName": "[concat('deployHub-', parameters('hub').vnet.name)]"
     },
     "resources": [
