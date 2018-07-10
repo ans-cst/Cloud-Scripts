@@ -90,7 +90,7 @@
                             "priority": 110
                         },
                         {
-                            "ruleName": "Aloow_Corp_SSH",
+                            "ruleName": "Allow_Corp_SSH",
                             "protocol": "*",
                             "direction": "Inbound",
                             "access": "Allow",
