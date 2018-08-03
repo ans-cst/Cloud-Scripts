@@ -181,7 +181,7 @@
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('vmName'),'-nic', copyindex())]",
+      "name": "[concat(parameters('vmName'),'-nic', copyindex(1))]",
       "apiVersion": "2017-03-01",
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -217,7 +217,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmName'), copyIndex())]",
+      "name": "[concat(parameters('vmName'), copyIndex(1))]",
       "apiVersion": "2017-03-30",
       "location": "[resourceGroup().location]",
       "tags": {
@@ -242,7 +242,7 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmName'), copyIndex())]",
+          "computerName": "[concat(parameters('vmName'), copyIndex(1))]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -267,7 +267,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'-nic', copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'-nic', copyindex(1)))]"
             }
           ]
         }
@@ -275,7 +275,7 @@
     },
     {
         "type": "Microsoft.Compute/virtualMachines/extensions",
-        "name": "[concat(parameters('vmName'), copyIndex(), '/', 'LogicMonitor-Collector')]",
+        "name": "[concat(parameters('vmName'), copyIndex(1), '/', 'LogicMonitor-Collector')]",
         "apiVersion": "2017-03-30",
         "location": "[resourceGroup().location]",
         "copy": {
