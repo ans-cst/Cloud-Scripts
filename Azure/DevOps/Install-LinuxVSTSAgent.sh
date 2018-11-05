@@ -24,9 +24,10 @@ fi
 if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   # Download, extract and configure the agent
   curl $VSTS_DOWNLOAD_URL --output /tmp/vsts-agent-linux.x64.tar.gz
-  mkdir agent
-  cd agent
+  mkdir $HOME/agent
+  cd $HOME/agent
   tar zxf /tmp/vsts-agent-linux.x64.tar.gz
+  sudo chown -R $LOGNAME:999 ./*
   # Install dependencies
   sudo ./bin/installdependencies.sh
   # TODO: Config needs to be configured for unattended access
@@ -35,7 +36,7 @@ if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   sudo ./svc.sh install
   sudo ./svc.sh enable
   sudo ./svc.sh start
-  cd ~
+  cd $HOME
 fi
 
 # Install dependencies and install Docker
@@ -47,6 +48,7 @@ if [ ! $(which docker) ]; then
   sudo apt-get install -y docker-ce
   sudo systemctl enable docker
   sudo systemctl start docker
+  sudo usermod -aG docker $LOGNAME
 fi
 
 # Install AZ CLI and Kubectl
