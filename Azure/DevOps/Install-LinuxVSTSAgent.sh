@@ -6,6 +6,7 @@
 
 export VSTS_DOWNLOAD_URL="https://vstsagentpackage.azureedge.net/agent/2.141.1/vsts-agent-linux-x64-2.141.1.tar.gz"
 export ORG="ans-devops"
+export ADMINUSER=$3
 
 # Environment variables used in VSTS configuration 
 export VSTS_AGENT_INPUT_URL="https://dev.azure.com/$ORG"
@@ -24,10 +25,10 @@ fi
 if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   # Download, extract and configure the agent
   curl $VSTS_DOWNLOAD_URL --output /tmp/vsts-agent-linux.x64.tar.gz
-  mkdir $HOME/agent
-  cd $HOME/agent
+  mkdir /home/$ADMINUSER/agent
+  cd /home/$ADMINUSER/agent
   tar zxf /tmp/vsts-agent-linux.x64.tar.gz
-  sudo chown -R $LOGNAME:999 ./*
+  sudo chown -R $ADMINUSER:999 ./*
   # Install dependencies
   sudo ./bin/installdependencies.sh
   # TODO: Config needs to be configured for unattended access
@@ -36,7 +37,7 @@ if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   sudo ./svc.sh install
   sudo ./svc.sh enable
   sudo ./svc.sh start
-  cd $HOME
+  cd /home/$ADMINUSER
 fi
 
 # Install dependencies and install Docker
@@ -48,7 +49,7 @@ if [ ! $(which docker) ]; then
   sudo apt-get install -y docker-ce
   sudo systemctl enable docker
   sudo systemctl start docker
-  sudo usermod -aG docker $LOGNAME
+  sudo usermod -aG docker $ADMINUSER
 fi
 
 # Install AZ CLI and Kubectl
