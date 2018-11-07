@@ -32,7 +32,7 @@ if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   # Install dependencies
   sudo ./bin/installdependencies.sh
   # TODO: Config needs to be configured for unattended access
-  su --command "./config.sh --unattended --acceptTeeEula" ans-admin
+  su --command "./config.sh --unattended --acceptTeeEula" $ADMINUSER
   # Configure the agent as a service
   sudo ./svc.sh install
   sudo ./svc.sh enable
