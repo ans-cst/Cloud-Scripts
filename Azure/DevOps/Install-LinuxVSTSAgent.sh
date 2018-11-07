@@ -28,7 +28,7 @@ if [ ! -a /etc/systemd/system/vsts.agent.$ORG.$AGENT.service ]; then
   mkdir /home/$ADMINUSER/agent
   cd /home/$ADMINUSER/agent
   tar zxf /tmp/vsts-agent-linux.x64.tar.gz
-  sudo chown -R $ADMINUSER:999 ./*
+  sudo chown -R $ADMINUSER:999 /home/$ADMINUSER/agent
   # Install dependencies
   sudo ./bin/installdependencies.sh
   # TODO: Config needs to be configured for unattended access
