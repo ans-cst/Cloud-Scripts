@@ -51,7 +51,7 @@ if [ ! $(which docker) ]; then
   sudo systemctl start docker
   sudo usermod -aG docker $ADMINUSER
   # Install crontab for user to clear down images
-  echo "30 7 * * * docker images | egrep 'azurecr|none' | awk '{print "'$3'"}' | xargs docker rmi" | crontab -
+  echo "30 8 * * * docker images | egrep 'azurecr|none' | awk '{print "'$3'"}' | xargs docker rmi" | crontab -
 fi
 
 # Install AZ CLI and Kubectl
